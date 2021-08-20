@@ -1,0 +1,55 @@
+import numpy as np
+import pandas as pd
+import matplotlib.pyplot as plt
+import seaborn as sns
+%matplotlib inline
+# load the frist head of data 
+df = pd.read_csv('noshowappointments-kagglev2-may-2016.csv')
+df.head()
+remove_col=['PatientId', 'AppointmentID']
+#deleting the unused data
+df= df.drop(remove_col,1)
+df.head()
+#converting ScheduledDay and AppointmentDay from string to datetime 
+df['ScheduledDay'] = pd.to_datetime(df['ScheduledDay'])
+df['AppointmentDay'] = pd.to_datetime(df['AppointmentDay'])
+#Check back to make sure of changes
+df.dtypes
+# collect duplicated values
+df.duplicated().sum()
+# remove found duplicates 
+df.drop_duplicates(inplace=True)
+# check the describtive analysis for the data
+df.describe()
+#we need to check the age data 
+df[df["Age"] < 0].shape[0]
+# we have only 1 value below 0 so we will derop it in age colum
+df.drop(df[df["Age"] < 0].index, inplace=True)
+# Check if the Scheduled Day is unique or not ?
+df.ScheduledDay.nunique()
+#Extracing Year, Month, Week, Day, and Hour from ScheduledDay
+df["ScheduledDay_year"] = df.ScheduledDay.dt.year
+df['ScheduledDay_month']= df.ScheduledDay.dt.month
+df['ScheduledDay_week']= df.ScheduledDay.dt.isocalendar().week
+df['ScheduledDay_day']= df.ScheduledDay.dt.day
+df['ScheduledDay_hour']= df.ScheduledDay.dt.hour
+#reload data gain
+df.head()
+df.AppointmentDay.nunique()
+df.describe()
+df.info()
+df.ScheduledDay_month.describe()
+df.ScheduledDay_month.value_counts().plot(kind= 'pie', autopct='lambda', figsize=(7,8));
+pd.crosstab(df['Age'],df['No-show']).plot(kind='hist',alpha=0.5);
+plt.title('Age Frequency');
+plt.xlabel('Patients Number');
+location = df['Neighbourhood'].value_counts().index
+plt.figure(figsize=(20,6))
+plt.title('Locations with higher appointments with no show')
+plt.xticks(rotation=90)
+sns.countplot(x=df['Neighbourhood'], data=df, hue='No-show', order=location);
+#function to culculte 
+def disply_distribution(df, col_name, title):
+    df[col_name].value_counts().plot(kind='bar', title=title)
+#call function to count number of patients receiving SMS via not recived
+disply_distribution(df, 'SMS_received', 'SMS_received distribution')    
